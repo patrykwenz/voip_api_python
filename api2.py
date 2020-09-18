@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 import os
 import random
+import subprocess
 
 app = Flask(__name__)
 
@@ -177,6 +178,16 @@ class api_logic:
             if data["user_name"] == str(user_name):
                 del structure[i]
 
+    @staticmethod
+    def get_peer_ip_address(user_name):
+        res = subprocess.getstatusoutput('sudo asterisk -rx  "sip show peers"')
+        res = res[1].split("\n")
+        for line in res[1:-2]:
+            if line.startswith(user_name):
+                line = line.split()
+                ip = line[1]
+                return ip
+
 
 @app.route('/')
 def hello():
@@ -218,26 +229,36 @@ def update_user_status_busy(user_name):
     return jsonify({"Status changed": "BUSY"}), 200
 
 
-@app.route('/get-peer/<string:user_name>', methods=['GET'])
-def get_peer(user_name):
-    user_flag = api_logic.get_user_status(str(user_name))
-    users_pool = api_logic.get_all_user_except_with_status(str(user_name), 1)
-    if user_flag == 0:
-        return jsonify({"You are not rdy yet": ""}), 200
-    if len(users_pool) == 0:
-        return jsonify({"Queue is empty": ""}), 200
-    if user_flag == 2:
-        return jsonify(PAIRS[str(user_name)]), 200
-    else:
-        # choose random one
-        peer = random.choice(users_pool)
-        # set both status to 2
-        api_logic.set_user_flag(str(user_name), 2)
-        api_logic.set_user_flag(str(peer), 2)
-        # add to pairs
-        PAIRS[str(user_name)] = str(peer)
-        PAIRS[str(peer)] = str(user_name)
-        return jsonify(PAIRS[str(user_name)]), 200
+@app.route('/user-status/<string:user_name>', methods=['GET'])
+def get_user_status(user_name):
+    status = api_logic.get_user_status(user_name)
+    return jsonify(status), 200
+
+@app.route('/user-ip/<string:user_name>', methods=['GET'])
+def get_peer_ip(user_name):
+    ip = api_logic.get_peer_ip_address(user_name)
+    return jsonify(ip), 200
+
+# @app.route('/get-peer/<string:user_name>', methods=['GET'])
+# def get_peer(user_name):
+#     user_flag = api_logic.get_user_status(str(user_name))
+#     users_pool = api_logic.get_all_user_except_with_status(str(user_name), 1)
+#     if user_flag == 0:
+#         return jsonify({"You are not rdy yet": ""}), 200
+#     if len(users_pool) == 0:
+#         return jsonify({"Queue is empty": ""}), 200
+#     if user_flag == 2:
+#         return jsonify(PAIRS[str(user_name)]), 200
+#     else:
+#         # choose random one
+#         peer = random.choice(users_pool)
+#         # set both status to 2
+#         api_logic.set_user_flag(str(user_name), 2)
+#         api_logic.set_user_flag(str(peer), 2)
+#         # add to pairs
+#         PAIRS[str(user_name)] = str(peer)
+#         PAIRS[str(peer)] = str(user_name)
+#         return jsonify(PAIRS[str(user_name)]), 200
 
 
 @app.route('/get-peer/<string:user_name>', methods=['GET'])
@@ -246,14 +267,19 @@ def get_peer_exten(user_name):
     users_pool = api_logic.get_all_user_except_with_status(str(user_name), 1)
     if user_flag == 0:
         return jsonify({"You are not rdy yet": ""}), 200
-    if len(users_pool) == 0:
-        return jsonify({"Queue is empty": ""}), 200
+
+    if user_flag == 1:
+        if len(users_pool) == 0:
+            return jsonify({"Queue is empty": ""}), 200
     if user_flag == 2:
-        number = api_logic.get_dial_number(PAIRS[str(user_name)])
         if str(user_name) in PAIRS.keys():
+            number = api_logic.get_dial_number(PAIRS[str(user_name)])
             return jsonify({"call": PAIRS[str(user_name)],
                             "exten": str(number)}), 200
         if str(user_name) in PAIRS.values():
+            # swapped_phone_book = {val: key for key, val in PAIRS.items()}
+            # u_check = swapped_phone_book[str(user_name)]
+            # number = api_logic.get_dial_number(u_check)
             return jsonify({"Wait some more 2": "soon someone will call"}), 200
     else:
         # choose random one

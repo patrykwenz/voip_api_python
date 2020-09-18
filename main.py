@@ -146,11 +146,15 @@ def add_user_to_exten_conf(user_name):
     append_to_file(exten_string_to_append, filename=SIP_EXTEN_FILE)
     return exten_string_to_append
 
+import  subprocess
 
 # Press the green button in the gutter to r
 # un the script.
 if __name__ == '__main__':
+    # result = subprocess.run(['asterisk', '-rx "sip show peers"'])
+
     # file = os.path.abspath("/etc/asterisk/sip.conf")
+    # print('sudo asterisk -rx  "sip show peers"')
     #
     # with open(file) as f:
     #     data = f.readlines()
@@ -182,27 +186,27 @@ if __name__ == '__main__':
 
     user_name = "don"
     pairs, check = pair_users_to_chat()
-    print(pairs)
+    # print(pairs)
     # if user_name not in check:
     #     print("Wait some more")
     # if user_name in pairs.keys():
     #     print({"call": pairs[str(user_name)]})
     # if user_name in pairs.values():
     #     print({"receive call"})
+    #
+    # l = {"a": 323, "B": 123213}
+    #
+    # d = [
+    #     {"user_name": "a",
+    #      "exten": "666666"},
+    #
+    #     {"user_name": "b",
+    #      "exten": "7777"},
+    #
+    #     {"user_name": "c",
+    #      "exten": "8888"},
 
-    l = {"a": 323, "B": 123213}
-
-    d = [
-        {"user_name": "a",
-         "exten": "666666"},
-
-        {"user_name": "b",
-         "exten": "7777"},
-
-        {"user_name": "c",
-         "exten": "8888"},
-
-    ]
+    # ]
     # file = os.path.abspath("/etc/asterisk/extensions.conf")
     # name = "tom"
     # with open(file) as f:
@@ -223,6 +227,6 @@ if __name__ == '__main__':
     #
     # print(new_data)
 
-    add_user_to_exten_conf("tom")
+    # add_user_to_exten_conf("tom")
 # sudo asterisk -rx "reload"
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

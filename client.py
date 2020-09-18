@@ -1,4 +1,5 @@
 import requests
+import ast
 
 URL = "http://0.0.0.0:5000"
 ENDPOINT_NEW_USER = "/add-user-to-sip-exten-conf/"
@@ -6,6 +7,7 @@ ENDPOINT_SIP_FILE = "/sip-file-lookup"
 ENDPOINT_USER_STATUS_RDY = "/update-status-rdy/"
 ENDPOINT_USER_STATUS_BUSY = "/update-status-busy/"
 ENDPOINT_PEER = "/get-peer/"
+ENDPOINT_USER_IP = "/user-ip/"
 
 
 def get_delete_info(req, info):
@@ -42,13 +44,13 @@ def get_sip_file():
 def update_user_status_rdy(user_name):
     final_endpoint = URL + ENDPOINT_USER_STATUS_RDY + str(user_name)
     req = requests.put(final_endpoint)
-    get_delete_info(req, "GET")
+    get_delete_info(req, "PUT")
 
 
 def update_user_status_busy(user_name):
     final_endpoint = URL + ENDPOINT_USER_STATUS_BUSY + str(user_name)
     req = requests.put(final_endpoint)
-    get_delete_info(req, "GET")
+    get_delete_info(req, "PUT")
 
 
 def get_peer(user_name):
@@ -69,40 +71,119 @@ def status2():
     get_delete_info(req, "GET")
 
 
+def get_user_status(user):
+    final_endpoint = URL + "/user-status/" + user
+    req = requests.get(final_endpoint)
+    get_delete_info(req, "GET")
+
+
 def de(user_name):
     final_endpoint = URL + "/delete-user/" + str(user_name)
     req = requests.delete(final_endpoint)
     get_delete_info(req, "GET")
 
 
-if __name__ == '__main__':
-    u_name = "aa"
-    u2_name = "bb"
-    u3_name = "cc"
 
-    status()
-    status2()
+
+
+
+
+
+
+def get_user_status_value(u_name):
+    final_endpoint = URL + "/user-status/" + u_name
+    req = requests.get(final_endpoint)
+    return req.text
+
+
+def get_peer_info(user_name):
+    final_endpoint = URL + ENDPOINT_PEER + str(user_name)
+    req = requests.get(final_endpoint)
+    d = ast.literal_eval(req.text)
+    return d
+
+def get_user_ip(u_name):
+    final_endpoint = URL + ENDPOINT_USER_IP + u_name
+    req = requests.get(final_endpoint)
+    return req.text
+
+
+if __name__ == '__main__':
+    u_name = "zyj1"
+    u2_name = "zyj2"
+    u3_name = "zyj3"
+
+    print(get_user_ip(u_name))
+    post_new_user(u_name)
+    post_new_user(u2_name)
+    post_new_user(u3_name)
+
+    update_user_status_rdy(u_name)
+    update_user_status_rdy(u2_name)
+    update_user_status_rdy(u3_name)
+
+    get_peer(u_name)
+    get_peer(u2_name)
+    get_peer(u3_name)
+
+
+    # status()
+    # status2()
+
+    # get_peer(u_name)
+    # get_peer(u2_name)
+    # get_peer(u3_name)
+    #
+    # status()
+    # status2()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #
+    # status()
+    # status2()
 
     # get_sip_file()
-    post_new_user(u_name)
-    post_new_user(u3_name)
-    post_new_user(u2_name)
+
     # update_user_status_rdy(u_name)
     # update_user_status_busy(u_name)
-    #
+
     # status()
     # status2()
     # update_user_status_rdy(u3_name)
     # update_user_status_rdy(u2_name)
     # status()
-    status()
-    status2()
-    #
-    get_peer(u_name)
-    get_peer(u2_name)
-    get_peer(u3_name)
-    de(u_name)
-    de(u2_name)
-    de(u3_name)
-    status()
-    status2()
+    # status()
+    # status2()
+    # #
+    # get_peer(u_name)
+    # get_peer(u2_name)
+    # get_peer(u3_name)
+    # de(u_name)
+    # de(u2_name)
+    # de(u3_name)
+    # status()
+    # status2()
+
+    # post_new_user(u_name)
+    # print(get_user_status_value(u_name)
+    #       )
+    # update_user_status_rdy(u_name)
+    # print(get_user_status_value(u_name)
+    #       )
