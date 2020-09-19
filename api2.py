@@ -196,8 +196,8 @@ def hello():
 
 @app.route('/add-user-to-sip-exten-conf/<string:user_name>', methods=['POST'])
 def add_user_to_sip_conf(user_name):
-    sip_string_to_append = api_logic.add_user_to_sip_conf(user_name)
     exten_string_to_append = api_logic.add_user_to_exten_conf(user_name)
+    sip_string_to_append = api_logic.add_user_to_sip_conf(user_name)
     return jsonify({"User added": "Exten Created"}), 200
 
 
@@ -234,10 +234,12 @@ def get_user_status(user_name):
     status = api_logic.get_user_status(user_name)
     return jsonify(status), 200
 
+
 @app.route('/user-ip/<string:user_name>', methods=['GET'])
 def get_peer_ip(user_name):
     ip = api_logic.get_peer_ip_address(user_name)
     return jsonify(ip), 200
+
 
 # @app.route('/get-peer/<string:user_name>', methods=['GET'])
 # def get_peer(user_name):
@@ -260,27 +262,43 @@ def get_peer_ip(user_name):
 #         PAIRS[str(peer)] = str(user_name)
 #         return jsonify(PAIRS[str(user_name)]), 200
 
+'''
+STATUS==0: code - 999
+
+NO PEERS: code - 888
+
+CALL: code - 200
+
+RECEIVE_CALL: code - 100
+'''
+
 
 @app.route('/get-peer/<string:user_name>', methods=['GET'])
 def get_peer_exten(user_name):
     user_flag = api_logic.get_user_status(str(user_name))
     users_pool = api_logic.get_all_user_except_with_status(str(user_name), 1)
     if user_flag == 0:
-        return jsonify({"You are not rdy yet": ""}), 200
+        return jsonify({"You are not rdy yet": ""}), 999
 
     if user_flag == 1:
         if len(users_pool) == 0:
-            return jsonify({"Queue is empty": ""}), 200
+            return jsonify({"Queue is empty": ""}), 888
     if user_flag == 2:
         if str(user_name) in PAIRS.keys():
             number = api_logic.get_dial_number(PAIRS[str(user_name)])
+            ip_addr = api_logic.get_peer_ip_address(PAIRS[str(user_name)])
             return jsonify({"call": PAIRS[str(user_name)],
-                            "exten": str(number)}), 200
+                            "exten": str(number),
+                            "ip_to_send_data": str(ip_addr)}), 200
         if str(user_name) in PAIRS.values():
-            # swapped_phone_book = {val: key for key, val in PAIRS.items()}
+            swapped_pairs = {val: key for key, val in PAIRS.items()}
+            name_ip = swapped_pairs[str(user_name)]
+            ip_addr = api_logic.get_peer_ip_address(str(name_ip))
             # u_check = swapped_phone_book[str(user_name)]
             # number = api_logic.get_dial_number(u_check)
-            return jsonify({"Wait some more 2": "soon someone will call"}), 200
+            return jsonify({"call": None,
+                            "exten": None,
+                            "ip_to_send_data": str(ip_addr)}), 100
     else:
         # choose random one
         peer = random.choice(users_pool)
@@ -290,8 +308,10 @@ def get_peer_exten(user_name):
         # add to pairs
         PAIRS[str(user_name)] = str(peer)
         number = api_logic.get_dial_number(PAIRS[str(user_name)])
+        ip_addr = api_logic.get_peer_ip_address(PAIRS[str(user_name)])
         return jsonify({"call": PAIRS[str(user_name)],
-                        "exten": str(number)}), 200
+                        "exten": str(number),
+                        "ip_to_send_data": str(ip_addr)}), 200
 
 
 @app.route('/delete-user/<string:user_name>', methods=['DELETE'])

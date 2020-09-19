@@ -109,11 +109,11 @@ def get_user_ip(u_name):
 
 
 if __name__ == '__main__':
-    u_name = "zyj1"
-    u2_name = "zyj2"
-    u3_name = "zyj3"
+    u_name = "ddd1"
+    u2_name = "ddd2"
+    u3_name = "ddd3"
 
-    print(get_user_ip(u_name))
+    # print(get_user_ip(u_name))
     post_new_user(u_name)
     post_new_user(u2_name)
     post_new_user(u3_name)
@@ -124,7 +124,10 @@ if __name__ == '__main__':
 
     get_peer(u_name)
     get_peer(u2_name)
+    # status()
+
     get_peer(u3_name)
+    status()
 
 
     # status()
