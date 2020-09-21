@@ -1,7 +1,7 @@
 import requests
 import ast
 
-URL = "http://0.0.0.0:5000"
+URL = "http://0.0.0.0:9898"
 ENDPOINT_NEW_USER = "/add-user-to-sip-exten-conf/"
 ENDPOINT_SIP_FILE = "/sip-file-lookup"
 ENDPOINT_USER_STATUS_RDY = "/update-status-rdy/"
@@ -103,28 +103,7 @@ def get_user_ip(u_name):
 
 
 if __name__ == '__main__':
-    u_name = "ziup1"
-    u2_name = "ziup2"
-    u3_name = "ziup3"
-
-    post_new_user(u_name)
-    post_new_user(u2_name)
-    post_new_user(u3_name)
-    post_new_user(u_name)
-
-
-    update_user_status_rdy(u_name)
-    update_user_status_rdy(u2_name)
-    update_user_status_rdy(u3_name)
-
-    get_peer(u_name)
-    get_peer(u2_name)
-    get_peer(u3_name)
-
-    status()
-    status2()
-
-
-    de(u_name)
-    status()
-    status2()
+    a = get_user_ip("zyj3")
+    for line in a:
+        print(line)
+    print(a)

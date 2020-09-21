@@ -207,7 +207,8 @@ class api_logic:
     def get_peer_ip_address(user_name):
         res = subprocess.getstatusoutput('sudo asterisk -rx  "sip show peers"')
         res = res[1].split("\n")
-        for line in res[1:-2]:
+        for line in res[1:-1]:
+            print(line)
             if line.startswith(user_name):
                 line = line.split()
                 ip = line[1]
@@ -250,6 +251,11 @@ def update_user_status_rdy(user_name):
     api_logic.set_user_flag(str(user_name), 1)
     return jsonify({"Status changed": "READY"}), 200
 
+@app.route('/update-status-rdy-to-talk/<string:user_name>', methods=['PUT'])
+def update_user_status_rdy_to_talk(user_name):
+    api_logic.set_user_flag(str(user_name), 3)
+    return jsonify({"Status changed": "READY TO TALK"}), 200
+
 
 @app.route('/update-status-busy/<string:user_name>', methods=['PUT'])
 def update_user_status_busy(user_name):
@@ -268,44 +274,32 @@ def get_peer_ip(user_name):
     ip = api_logic.get_peer_ip_address(user_name)
     return jsonify(ip), 200
 
-
-'''
-STATUS==0: code - 999
-
-NO PEERS: code - 888
-
-CALL: code - 200
-
-RECEIVE_CALL: code - 100
-'''
-
-
 @app.route('/get-peer/<string:user_name>', methods=['GET'])
 def get_peer_exten(user_name):
     user_flag = api_logic.get_user_status(str(user_name))
     users_pool = api_logic.get_all_user_except_with_status(str(user_name), 1)
     if user_flag == 0:
-        return jsonify({"You are not rdy yet": ""}), 999
+        return jsonify({"You are not rdy yet": ""}), 226
 
     if user_flag == 1:
         if len(users_pool) == 0:
-            return jsonify({"Queue is empty": ""}), 888
+            return jsonify({"Queue is empty": ""}), 208
     if user_flag == 2:
         if str(user_name) in PAIRS.keys():
             number = api_logic.get_dial_number(PAIRS[str(user_name)])
             ip_addr = api_logic.get_peer_ip_address(PAIRS[str(user_name)])
             return jsonify({"call": PAIRS[str(user_name)],
                             "exten": str(number),
-                            "ip_to_send_data": str(ip_addr)}), 200
+                            "ip_to_send_data": str(ip_addr)}), 202
         if str(user_name) in PAIRS.values():
             swapped_pairs = {val: key for key, val in PAIRS.items()}
             name_ip = swapped_pairs[str(user_name)]
             ip_addr = api_logic.get_peer_ip_address(str(name_ip))
             # u_check = swapped_phone_book[str(user_name)]
             # number = api_logic.get_dial_number(u_check)
-            return jsonify({"call": None,
+            return jsonify({"call": name_ip,
                             "exten": None,
-                            "ip_to_send_data": str(ip_addr)}), 200
+                            "ip_to_send_data": str(ip_addr)}), 230
     else:
         # choose random one
         peer = random.choice(users_pool)
@@ -318,14 +312,11 @@ def get_peer_exten(user_name):
         ip_addr = api_logic.get_peer_ip_address(PAIRS[str(user_name)])
         return jsonify({"call": PAIRS[str(user_name)],
                         "exten": str(number),
-                        "ip_to_send_data": str(ip_addr)}), 200
+                        "ip_to_send_data": str(ip_addr)}), 202
 
 
 @app.route('/delete-user/<string:user_name>', methods=['DELETE'])
 def delete_user(user_name):
-    # Delete dial
-    # delete conf
-    # delete from user status
     api_logic.delete_user_from_exten_conf(user_name)
     api_logic.delete_user_from_sip_conf(user_name)
     api_logic.delete_from_list_dict(USERS, user_name)
@@ -347,4 +338,4 @@ def delete_user(user_name):
 
 if __name__ == '__main__':
     initialize()
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=9898)
