@@ -83,13 +83,6 @@ def de(user_name):
     get_delete_info(req, "GET")
 
 
-
-
-
-
-
-
-
 def get_user_status_value(u_name):
     final_endpoint = URL + "/user-status/" + u_name
     req = requests.get(final_endpoint)
@@ -102,6 +95,7 @@ def get_peer_info(user_name):
     d = ast.literal_eval(req.text)
     return d
 
+
 def get_user_ip(u_name):
     final_endpoint = URL + ENDPOINT_USER_IP + u_name
     req = requests.get(final_endpoint)
@@ -109,14 +103,15 @@ def get_user_ip(u_name):
 
 
 if __name__ == '__main__':
-    u_name = "ddd1"
-    u2_name = "ddd2"
-    u3_name = "ddd3"
+    u_name = "ziup1"
+    u2_name = "ziup2"
+    u3_name = "ziup3"
 
-    # print(get_user_ip(u_name))
     post_new_user(u_name)
     post_new_user(u2_name)
     post_new_user(u3_name)
+    post_new_user(u_name)
+
 
     update_user_status_rdy(u_name)
     update_user_status_rdy(u2_name)
@@ -124,69 +119,12 @@ if __name__ == '__main__':
 
     get_peer(u_name)
     get_peer(u2_name)
-    # status()
-
     get_peer(u3_name)
+
     status()
+    status2()
 
 
-    # status()
-    # status2()
-
-    # get_peer(u_name)
-    # get_peer(u2_name)
-    # get_peer(u3_name)
-    #
-    # status()
-    # status2()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #
-    # status()
-    # status2()
-
-    # get_sip_file()
-
-    # update_user_status_rdy(u_name)
-    # update_user_status_busy(u_name)
-
-    # status()
-    # status2()
-    # update_user_status_rdy(u3_name)
-    # update_user_status_rdy(u2_name)
-    # status()
-    # status()
-    # status2()
-    # #
-    # get_peer(u_name)
-    # get_peer(u2_name)
-    # get_peer(u3_name)
-    # de(u_name)
-    # de(u2_name)
-    # de(u3_name)
-    # status()
-    # status2()
-
-    # post_new_user(u_name)
-    # print(get_user_status_value(u_name)
-    #       )
-    # update_user_status_rdy(u_name)
-    # print(get_user_status_value(u_name)
-    #       )
+    de(u_name)
+    status()
+    status2()

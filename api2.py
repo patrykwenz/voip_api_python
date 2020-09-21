@@ -14,6 +14,12 @@ def run_command(com=RELOAD_CONF_COMMAND):
     os.system(com)
 
 
+def initialize():
+    api_logic.initialize_exten()
+    api_logic.initialize_sip()
+    return True
+
+
 """
 {user_name : <name>,
     status: <status>}
@@ -34,6 +40,25 @@ class api_logic:
                       f"\thost=dynamic \n"
 
         return user_string
+
+    @staticmethod
+    def if_user_exists(user_name):
+        for user in USERS:
+            if user["user_name"] == user_name:
+                return True
+        return False
+
+    @staticmethod
+    def initialize_exten(file=SIP_EXTEN_FILE):
+        new_data = "[phones]\n"
+        with open(file, 'w') as f:
+            f.write(new_data)
+
+    @staticmethod
+    def initialize_sip(file=SIP_CONF_FILE):
+        new_data = api_logic.read_conf_file("sipconf.txt")
+        with open(file, 'w') as f:
+            f.write(new_data)
 
     @staticmethod
     def append_to_file(data, filename=SIP_CONF_FILE):
@@ -91,7 +116,7 @@ class api_logic:
     def add_user_to_exten_conf(user_name):
         n = len(DIAL_NUMBERS)
         number = "111" + f"{n:03}"
-        exten_string_to_append = api_logic.create_exten(str(user_name), number)
+        exten_string_to_append = api_logic.create_exten(number, str(user_name))
         api_logic.append_to_file(exten_string_to_append, filename=SIP_EXTEN_FILE)
         api_logic.add_dial_number(user_name, number)
         run_command()
@@ -196,9 +221,12 @@ def hello():
 
 @app.route('/add-user-to-sip-exten-conf/<string:user_name>', methods=['POST'])
 def add_user_to_sip_conf(user_name):
-    exten_string_to_append = api_logic.add_user_to_exten_conf(user_name)
-    sip_string_to_append = api_logic.add_user_to_sip_conf(user_name)
-    return jsonify({"User added": "Exten Created"}), 200
+    if api_logic.if_user_exists(user_name):
+        return jsonify({"User exists": "Exten NOT Created"}), 404
+    else:
+        exten_string_to_append = api_logic.add_user_to_exten_conf(user_name)
+        sip_string_to_append = api_logic.add_user_to_sip_conf(user_name)
+        return jsonify({"User added": "Exten Created"}), 200
 
 
 @app.route('/sip-file-lookup', methods=['GET'])
@@ -241,27 +269,6 @@ def get_peer_ip(user_name):
     return jsonify(ip), 200
 
 
-# @app.route('/get-peer/<string:user_name>', methods=['GET'])
-# def get_peer(user_name):
-#     user_flag = api_logic.get_user_status(str(user_name))
-#     users_pool = api_logic.get_all_user_except_with_status(str(user_name), 1)
-#     if user_flag == 0:
-#         return jsonify({"You are not rdy yet": ""}), 200
-#     if len(users_pool) == 0:
-#         return jsonify({"Queue is empty": ""}), 200
-#     if user_flag == 2:
-#         return jsonify(PAIRS[str(user_name)]), 200
-#     else:
-#         # choose random one
-#         peer = random.choice(users_pool)
-#         # set both status to 2
-#         api_logic.set_user_flag(str(user_name), 2)
-#         api_logic.set_user_flag(str(peer), 2)
-#         # add to pairs
-#         PAIRS[str(user_name)] = str(peer)
-#         PAIRS[str(peer)] = str(user_name)
-#         return jsonify(PAIRS[str(user_name)]), 200
-
 '''
 STATUS==0: code - 999
 
@@ -298,7 +305,7 @@ def get_peer_exten(user_name):
             # number = api_logic.get_dial_number(u_check)
             return jsonify({"call": None,
                             "exten": None,
-                            "ip_to_send_data": str(ip_addr)}), 100
+                            "ip_to_send_data": str(ip_addr)}), 200
     else:
         # choose random one
         peer = random.choice(users_pool)
@@ -322,13 +329,22 @@ def delete_user(user_name):
     api_logic.delete_user_from_exten_conf(user_name)
     api_logic.delete_user_from_sip_conf(user_name)
     api_logic.delete_from_list_dict(USERS, user_name)
+    api_logic.delete_from_list_dict(DIAL_NUMBERS, user_name)
 
-    c1 = list(PAIRS.keys()) + list(PAIRS.values())
-    if user_name in c1:
-        api_logic.delete_from_list_dict(PAIRS, user_name)
+    if user_name in PAIRS.keys():
+        del PAIRS[str(user_name)]
 
-    return jsonify({"Deleted": user_name}), 200
+    if user_name in PAIRS.values():
+        swapped_pairs = {val: key for key, val in PAIRS.items()}
+        peer_name = swapped_pairs[user_name]
+        del PAIRS[str(peer_name)]
+
+    return jsonify({"Deleted": user_name,
+                    "PAIRS": PAIRS,
+                    "DIAL": DIAL_NUMBERS,
+                    "USERS": USERS}), 200
 
 
 if __name__ == '__main__':
+    initialize()
     app.run(host='0.0.0.0')
