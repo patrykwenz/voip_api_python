@@ -164,34 +164,6 @@ class api_logic:
         USERS.append({"user_name": str(user_name), "status": 0})
 
     @staticmethod
-    def pair_users_to_chat():
-        global PAIRS
-
-        def _get_users_with_flag(flag):
-            users_to_return = []
-            for user in USERS:
-                if user["status"] == flag:
-                    users_to_return.append(user["user_name"])
-            return users_to_return
-
-        rdy_users = _get_users_with_flag(1)
-
-        pairs = dict()
-
-        while len(rdy_users) > 1:
-            r1 = random.randrange(0, len(rdy_users))
-            caller = rdy_users.pop(r1)
-            api_logic.set_user_flag(caller, 2)
-
-            r2 = random.randrange(0, len(rdy_users))
-            receiver = rdy_users.pop(r2)
-            api_logic.set_user_flag(receiver, 2)
-
-            pairs[caller] = receiver
-        PAIRS = pairs
-        return pairs
-
-    @staticmethod
     def get_dial_number(user_name):
         for data in DIAL_NUMBERS:
             if data["user_name"] == user_name:
@@ -208,7 +180,6 @@ class api_logic:
         res = subprocess.getstatusoutput('sudo asterisk -rx  "sip show peers"')
         res = res[1].split("\n")
         for line in res[1:-1]:
-            print(line)
             if line.startswith(user_name):
                 line = line.split()
                 ip = line[1]
@@ -251,6 +222,7 @@ def update_user_status_rdy(user_name):
     api_logic.set_user_flag(str(user_name), 1)
     return jsonify({"Status changed": "READY"}), 200
 
+
 @app.route('/update-status-rdy-to-talk/<string:user_name>', methods=['PUT'])
 def update_user_status_rdy_to_talk(user_name):
     api_logic.set_user_flag(str(user_name), 3)
@@ -273,6 +245,7 @@ def get_user_status(user_name):
 def get_peer_ip(user_name):
     ip = api_logic.get_peer_ip_address(user_name)
     return jsonify(ip), 200
+
 
 @app.route('/get-peer/<string:user_name>', methods=['GET'])
 def get_peer_exten(user_name):
