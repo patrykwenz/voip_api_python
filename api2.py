@@ -302,7 +302,8 @@ def delete_user(user_name):
         swapped_pairs = {val: key for key, val in PAIRS.items()}
         peer_name = swapped_pairs[user_name]
         del PAIRS[str(peer_name)]
-
+    
+    run_command()
     return jsonify({"Deleted": user_name,
                     "PAIRS": PAIRS,
                     "DIAL": DIAL_NUMBERS,
